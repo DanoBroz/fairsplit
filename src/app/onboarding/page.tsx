@@ -44,27 +44,11 @@ export default function OnboardingPage() {
 
     try {
       const supabase = createClient()
-
-      // Check session first (more reliable for RLS)
-      const { data: { session } } = await supabase.auth.getSession()
-      console.log('Session:', session)
-
       const { data: { user } } = await supabase.auth.getUser()
 
-      if (!user || !session) throw new Error('Not authenticated - please sign out and sign in again')
-
-      console.log('User ID:', user.id)
-      console.log('Session access token:', session.access_token.substring(0, 20) + '...')
+      if (!user) throw new Error('Not authenticated')
 
       const inviteCodeGenerated = generateInviteCode()
-
-      // Test: Try to query if user can see any households first
-      const { data: testQuery, error: testError } = await supabase
-        .from('households')
-        .select('id')
-        .limit(1)
-
-      console.log('Test query result:', testQuery, 'Error:', testError)
 
       // Create household
       const { data: household, error: householdError } = await supabase
@@ -77,8 +61,6 @@ export default function OnboardingPage() {
         })
         .select()
         .single()
-
-      console.log('Household insert result:', household, 'Error:', householdError)
 
       if (householdError) throw householdError
 
@@ -114,16 +96,15 @@ export default function OnboardingPage() {
 
       if (!user) throw new Error('Not authenticated')
 
-      // Find household by invite code
-      const { data: household, error: householdError } = await supabase
-        .from('households')
-        .select()
-        .eq('invite_code', inviteCode.toUpperCase())
-        .single()
+      // Find household by invite code using RPC function
+      const { data: households, error: householdError } = await supabase
+        .rpc('find_household_by_invite', { code: inviteCode.toUpperCase() })
 
-      if (householdError || !household) {
+      if (householdError || !households || households.length === 0) {
         throw new Error('Invalid invite code')
       }
+
+      const household = households[0]
 
       // Add user as member
       const { error: memberError } = await supabase
