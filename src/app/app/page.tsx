@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, Plus, Pencil, Copy, Check, LogOut, Users, User, Crown, UserPlus } from 'lucide-react'
+import { Heart, Plus, Pencil, Copy, Check, LogOut, Users, User, Crown, UserPlus, Home } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useHousehold } from '@/hooks/useHousehold'
 import { useExpenses } from '@/hooks/useExpenses'
@@ -25,6 +25,19 @@ export default function AppPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
+  const [sumType, setSumType] = useState<'all' | 'household' | 'private'>('all')
+
+  // Calculate sums for the header
+  const sums = useMemo(() => {
+    const allTotal = expenses.reduce((sum, e) => sum + e.amount, 0)
+    const householdTotal = expenses
+      .filter(e => e.type === 'household' || e.includeInHousehold)
+      .reduce((sum, e) => sum + e.amount, 0)
+    const privateTotal = expenses
+      .filter(e => e.paidBy === currentUserId && e.type === 'private' && !e.includeInHousehold)
+      .reduce((sum, e) => sum + e.amount, 0)
+    return { all: allTotal, household: householdTotal, private: privateTotal }
+  }, [expenses, currentUserId])
 
   const copyInviteCode = async () => {
     if (!household?.inviteCode) return
@@ -197,6 +210,40 @@ export default function AppPage() {
                 </svg>
                 <h2 className="font-medium text-sm text-gray-900 dark:text-white">{t.app.expenses}</h2>
               </div>
+
+              {/* Mobile sum - tap to cycle through types */}
+              {expenses.length > 0 && (
+                <button
+                  onClick={() => setSumType(current => current === 'all' ? 'household' : current === 'household' ? 'private' : 'all')}
+                  className="flex sm:hidden flex-col items-end gap-0.5 px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5">
+                    {sumType === 'household' ? (
+                      <Home className="w-3.5 h-3.5 text-blue-500" />
+                    ) : sumType === 'private' ? (
+                      <User className="w-3.5 h-3.5 text-purple-500" />
+                    ) : (
+                      <Users className="w-3.5 h-3.5 text-gray-400" />
+                    )}
+                    <span className={`text-sm font-semibold tabular-nums ${
+                      sumType === 'household'
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : sumType === 'private'
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {formatAmount(sums[sumType], household.currency, locale)}
+                    </span>
+                  </div>
+                  {/* Dots indicator */}
+                  <div className="flex items-center gap-1">
+                    <div className={`w-1 h-1 rounded-full ${sumType === 'all' ? 'bg-gray-600 dark:bg-gray-300' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-1 h-1 rounded-full ${sumType === 'household' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-1 h-1 rounded-full ${sumType === 'private' ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                  </div>
+                </button>
+              )}
+
               {/* Desktop only - mobile uses FAB */}
               <Button onClick={() => setIsAddModalOpen(true)} size="sm" className="hidden sm:flex">
                 <Plus className="w-4 h-4 mr-1" />

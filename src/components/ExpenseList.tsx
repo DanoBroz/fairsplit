@@ -315,9 +315,12 @@ function groupExpensesByDate(expenses: Expense[]): Map<string, Expense[]> {
   return groups
 }
 
+type SumType = 'all' | 'household' | 'private'
+
 export function ExpenseList({ expenses, members, currentUserId, currency, onRefresh }: ExpenseListProps) {
   const { t, locale } = useLanguage()
   const [filter, setFilter] = useState<FilterType>('all')
+  const [sumType, setSumType] = useState<SumType>('all')
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
 
   const getMemberName = (userId: string) => {
@@ -348,11 +351,33 @@ export function ExpenseList({ expenses, members, currentUserId, currency, onRefr
     [filteredExpenses]
   )
 
-  // Calculate total sum of filtered expenses
-  const filteredTotal = useMemo(() =>
-    filteredExpenses.reduce((sum, e) => sum + e.amount, 0),
-    [filteredExpenses]
-  )
+  // Calculate sums for all, household, and private expenses
+  const sums = useMemo(() => {
+    const allTotal = expenses.reduce((sum, e) => sum + e.amount, 0)
+    const householdTotal = expenses
+      .filter(e => e.type === 'household' || e.includeInHousehold)
+      .reduce((sum, e) => sum + e.amount, 0)
+    const privateTotal = expenses
+      .filter(e => e.paidBy === currentUserId && e.type === 'private' && !e.includeInHousehold)
+      .reduce((sum, e) => sum + e.amount, 0)
+    return { all: allTotal, household: householdTotal, private: privateTotal }
+  }, [expenses, currentUserId])
+
+  // Cycle through sum types
+  const cycleSumType = () => {
+    setSumType(current => {
+      if (current === 'all') return 'household'
+      if (current === 'household') return 'private'
+      return 'all'
+    })
+  }
+
+  // Get label for current sum type
+  const sumLabel = sumType === 'all'
+    ? t.expense.filterAll
+    : sumType === 'household'
+      ? t.expense.household
+      : t.expense.private
 
   const handleDelete = async (id: string) => {
     try {
@@ -416,16 +441,37 @@ export function ExpenseList({ expenses, members, currentUserId, currency, onRefr
           </button>
         </div>
 
-        {/* Total sum */}
-        {filteredExpenses.length > 0 && (
-          <div className="text-right shrink-0">
-            <span className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
-              {formatAmount(filteredTotal, currency, locale)}
-            </span>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1.5 tabular-nums">
-              ({filteredExpenses.length})
-            </span>
-          </div>
+        {/* Total sum - desktop only */}
+        {expenses.length > 0 && (
+          <button
+            onClick={cycleSumType}
+            className="hidden sm:flex flex-col items-end gap-0.5 shrink-0 px-2 py-1 -mr-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors"
+          >
+            <div className="flex items-center gap-1.5">
+              {sumType === 'household' ? (
+                <Home className="w-3.5 h-3.5 text-blue-500" />
+              ) : sumType === 'private' ? (
+                <User className="w-3.5 h-3.5 text-purple-500" />
+              ) : (
+                <Users className="w-3.5 h-3.5 text-gray-400" />
+              )}
+              <span className={`text-sm font-semibold tabular-nums ${
+                sumType === 'household'
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : sumType === 'private'
+                    ? 'text-purple-600 dark:text-purple-400'
+                    : 'text-gray-900 dark:text-white'
+              }`}>
+                {formatAmount(sums[sumType], currency, locale)}
+              </span>
+            </div>
+            {/* Dots indicator */}
+            <div className="flex items-center gap-1">
+              <div className={`w-1 h-1 rounded-full ${sumType === 'all' ? 'bg-gray-600 dark:bg-gray-300' : 'bg-gray-300 dark:bg-gray-600'}`} />
+              <div className={`w-1 h-1 rounded-full ${sumType === 'household' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+              <div className={`w-1 h-1 rounded-full ${sumType === 'private' ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+            </div>
+          </button>
         )}
       </div>
 
