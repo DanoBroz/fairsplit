@@ -11,6 +11,7 @@ import { EditProfileModal } from '@/components/EditProfileModal'
 import { ExpenseList } from '@/components/ExpenseList'
 import { SummaryCards } from '@/components/SummaryCards'
 import { Button } from '@/components/ui/Button'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function AppPage() {
   const router = useRouter()
@@ -21,7 +22,7 @@ export default function AppPage() {
 
   if (householdLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="flex items-center gap-2">
           <Heart className="w-8 h-8 text-blue-600 fill-blue-600 animate-pulse" />
           <p className="text-xl">Loading...</p>
@@ -38,7 +39,7 @@ export default function AppPage() {
   const currentMember = members.find((m) => m.userId === currentUserId)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -47,16 +48,19 @@ export default function AppPage() {
               <Heart className="w-8 h-8 text-blue-600 fill-blue-600" />
               <h1 className="text-3xl font-bold">{household.name}</h1>
             </div>
-            <button
-              onClick={async () => {
-                const supabase = createClient()
-                await supabase.auth.signOut()
-                router.push('/auth/login')
-              }}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                onClick={async () => {
+                  const supabase = createClient()
+                  await supabase.auth.signOut()
+                  router.push('/auth/login')
+                }}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
 
@@ -69,7 +73,7 @@ export default function AppPage() {
         />
 
         {/* Household Info */}
-        <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-sm mb-6">
+        <div className="rounded-lg p-6 shadow-sm mb-6 bg-white dark:bg-gray-800">
           <h2 className="text-xl font-bold mb-4">Household Members</h2>
           <div className="space-y-3">
             {members.map((member) => {
@@ -77,7 +81,7 @@ export default function AppPage() {
               return (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded"
+                  className="flex items-center justify-between p-3 rounded bg-gray-100 dark:bg-gray-700"
                 >
                   <div>
                     <p className="font-medium">
@@ -109,7 +113,7 @@ export default function AppPage() {
             })}
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded">
+          <div className="mt-6 p-4 rounded bg-indigo-50 dark:bg-indigo-900/20">
             <p className="text-sm font-medium mb-2">Invite Code</p>
             <p className="text-2xl font-mono font-bold tracking-wider">
               {household.inviteCode}
@@ -121,7 +125,7 @@ export default function AppPage() {
         </div>
 
         {/* Expenses Section */}
-        <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+        <div className="rounded-lg p-6 shadow-sm bg-white dark:bg-gray-800">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold">Expenses</h2>
             <Button onClick={() => setIsAddModalOpen(true)} size="sm">
