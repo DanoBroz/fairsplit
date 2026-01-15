@@ -2,20 +2,22 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, Plus } from 'lucide-react'
+import { Heart, Plus, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useHousehold } from '@/hooks/useHousehold'
 import { useExpenses } from '@/hooks/useExpenses'
 import { AddExpenseModal } from '@/components/AddExpenseModal'
+import { EditProfileModal } from '@/components/EditProfileModal'
 import { ExpenseList } from '@/components/ExpenseList'
 import { SummaryCards } from '@/components/SummaryCards'
 import { Button } from '@/components/ui/Button'
 
 export default function AppPage() {
   const router = useRouter()
-  const { household, members, currentUserId, loading: householdLoading } = useHousehold()
+  const { household, members, currentUserId, loading: householdLoading, refetch: refetchHousehold } = useHousehold()
   const { expenses, loading: expensesLoading, refetch } = useExpenses(household?.id || null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
 
   if (householdLoading) {
     return (
@@ -70,25 +72,41 @@ export default function AppPage() {
         <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-sm mb-6">
           <h2 className="text-xl font-bold mb-4">Household Members</h2>
           <div className="space-y-3">
-            {members.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded"
-              >
-                <div>
-                  <p className="font-medium">
-                    {member.displayName}
-                    {member.userId === currentUserId && ' (You)'}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
-                    {member.role}
-                  </p>
+            {members.map((member) => {
+              const isCurrentUser = member.userId === currentUserId
+              return (
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {member.displayName}
+                      {isCurrentUser && ' (You)'}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                      {member.role}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-semibold">
+                      {household.currency} {member.income.toLocaleString()}
+                    </p>
+                    {isCurrentUser && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditProfileOpen(true)}
+                        className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        aria-label="Edit your profile"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <p className="text-lg font-semibold">
-                  {household.currency} {member.income.toLocaleString()}
-                </p>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded">
@@ -138,6 +156,15 @@ export default function AppPage() {
         currentUserId={currentUserId}
         currentUserName={currentMember?.displayName || 'You'}
         onSuccess={refetch}
+      />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        member={currentMember || null}
+        currency={household.currency}
+        onSuccess={refetchHousehold}
       />
     </div>
   )

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Household, HouseholdMember } from '@/types'
 
@@ -8,6 +8,7 @@ interface HouseholdData {
   currentUserId: string | null
   loading: boolean
   error: string | null
+  refetch: () => void
 }
 
 export function useHousehold(): HouseholdData {
@@ -16,6 +17,9 @@ export function useHousehold(): HouseholdData {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refetchTrigger, setRefetchTrigger] = useState(0)
+
+  const refetch = useCallback(() => setRefetchTrigger((prev) => prev + 1), [])
 
   useEffect(() => {
     async function loadHouseholdData() {
@@ -88,7 +92,25 @@ export function useHousehold(): HouseholdData {
     }
 
     loadHouseholdData()
-  }, [])
+  }, [refetchTrigger])
 
-  return { household, members, currentUserId, loading, error }
+  return { household, members, currentUserId, loading, error, refetch }
+}
+
+export async function updateMember(
+  memberId: string,
+  updates: { displayName?: string; income?: number }
+) {
+  const supabase = createClient()
+
+  const snakeCaseUpdates: Record<string, unknown> = {}
+  if (updates.displayName !== undefined) snakeCaseUpdates.display_name = updates.displayName
+  if (updates.income !== undefined) snakeCaseUpdates.income = updates.income
+
+  const { error } = await supabase
+    .from('household_members')
+    .update(snakeCaseUpdates)
+    .eq('id', memberId)
+
+  if (error) throw error
 }
