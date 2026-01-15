@@ -6,9 +6,11 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Label } from '../ui/Label'
+import { useLanguage } from '../LanguageProvider'
 
 export function SignupForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -20,12 +22,12 @@ export function SignupForm() {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(t.auth.passwordsDoNotMatch)
       return
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError(t.auth.passwordTooShort)
       return
     }
 
@@ -52,11 +54,11 @@ export function SignupForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t.auth.email}</Label>
         <Input
           id="email"
           type="email"
-          placeholder="you@example.com"
+          placeholder={t.auth.emailPlaceholder}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -65,11 +67,11 @@ export function SignupForm() {
       </div>
 
       <div>
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t.auth.password}</Label>
         <Input
           id="password"
           type="password"
-          placeholder="••••••••"
+          placeholder={t.auth.passwordPlaceholder}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -77,16 +79,16 @@ export function SignupForm() {
           minLength={6}
         />
         <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-          At least 6 characters
+          {t.auth.passwordHint}
         </p>
       </div>
 
       <div>
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Label htmlFor="confirmPassword">{t.auth.confirmPassword}</Label>
         <Input
           id="confirmPassword"
           type="password"
-          placeholder="••••••••"
+          placeholder={t.auth.passwordPlaceholder}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
@@ -101,7 +103,7 @@ export function SignupForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Creating account...' : 'Create Account'}
+        {isLoading ? t.auth.creatingAccount : t.auth.createAccount}
       </Button>
     </form>
   )

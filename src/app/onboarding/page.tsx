@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/Label'
 import { Select } from '@/components/ui/Select'
 import { createClient } from '@/lib/supabase/client'
 import { CURRENCIES, type CurrencyCode } from '@/types'
+import { useLanguage } from '@/components/LanguageProvider'
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -22,6 +23,7 @@ function generateInviteCode(): string {
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [step, setStep] = useState<'choice' | 'create' | 'join'>('choice')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +31,7 @@ export default function OnboardingPage() {
   // Create household state
   const [householdName, setHouseholdName] = useState('')
   const [yourName, setYourName] = useState('')
-  const [currency, setCurrency] = useState<CurrencyCode>('USD')
+  const [currency, setCurrency] = useState<CurrencyCode>('CZK')
   const [income, setIncome] = useState('')
 
   // Join household state
@@ -46,7 +48,7 @@ export default function OnboardingPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
 
-      if (!user) throw new Error('Not authenticated')
+      if (!user) throw new Error(t.onboarding.notAuthenticated)
 
       const inviteCodeGenerated = generateInviteCode()
 
@@ -79,8 +81,9 @@ export default function OnboardingPage() {
 
       router.push('/')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message)
       setIsLoading(false)
     }
   }
@@ -94,14 +97,14 @@ export default function OnboardingPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
 
-      if (!user) throw new Error('Not authenticated')
+      if (!user) throw new Error(t.onboarding.notAuthenticated)
 
       // Find household by invite code using RPC function
       const { data: households, error: householdError } = await supabase
         .rpc('find_household_by_invite', { code: inviteCode.toUpperCase() })
 
       if (householdError || !households || households.length === 0) {
-        throw new Error('Invalid invite code')
+        throw new Error(t.onboarding.invalidInviteCode)
       }
 
       const household = households[0]
@@ -121,8 +124,9 @@ export default function OnboardingPage() {
 
       router.push('/')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message)
       setIsLoading(false)
     }
   }
@@ -133,23 +137,23 @@ export default function OnboardingPage() {
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Heart className="w-8 h-8 text-blue-600 fill-blue-600" />
-            <h1 className="text-3xl font-bold">Welcome to FairSplit!</h1>
+            <h1 className="text-3xl font-bold">{t.onboarding.welcome}</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
-            Let&apos;s set up your household
+            {t.onboarding.letsSetup}
           </p>
         </div>
 
         <Card>
           {step === 'choice' && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Get Started</h2>
+              <h2 className="text-xl font-bold">{t.onboarding.getStarted}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Create a new household or join an existing one
+                {t.onboarding.createOrJoin}
               </p>
               <div className="space-y-3">
                 <Button onClick={() => setStep('create')} className="w-full" size="lg">
-                  Create New Household
+                  {t.onboarding.createNewHousehold}
                 </Button>
                 <Button
                   onClick={() => setStep('join')}
@@ -157,7 +161,7 @@ export default function OnboardingPage() {
                   className="w-full"
                   size="lg"
                 >
-                  Join with Invite Code
+                  {t.onboarding.joinWithCode}
                 </Button>
               </div>
             </div>
@@ -165,13 +169,13 @@ export default function OnboardingPage() {
 
           {step === 'create' && (
             <form onSubmit={handleCreateHousehold} className="space-y-4">
-              <h2 className="text-xl font-bold">Create Household</h2>
+              <h2 className="text-xl font-bold">{t.onboarding.createHousehold}</h2>
 
               <div>
-                <Label htmlFor="householdName">Household Name</Label>
+                <Label htmlFor="householdName">{t.onboarding.householdName}</Label>
                 <Input
                   id="householdName"
-                  placeholder="Our Home"
+                  placeholder={t.onboarding.householdNamePlaceholder}
                   value={householdName}
                   onChange={(e) => setHouseholdName(e.target.value)}
                   required
@@ -180,10 +184,10 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <Label htmlFor="yourName">Your Name</Label>
+                <Label htmlFor="yourName">{t.onboarding.yourName}</Label>
                 <Input
                   id="yourName"
-                  placeholder="Alex"
+                  placeholder={t.onboarding.yourNamePlaceholder}
                   value={yourName}
                   onChange={(e) => setYourName(e.target.value)}
                   required
@@ -192,11 +196,11 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <Label htmlFor="income">Your Monthly Income</Label>
+                <Label htmlFor="income">{t.onboarding.monthlyIncome}</Label>
                 <Input
                   id="income"
                   type="number"
-                  placeholder="3000"
+                  placeholder={t.onboarding.incomePlaceholder}
                   value={income}
                   onChange={(e) => setIncome(e.target.value)}
                   required
@@ -205,7 +209,7 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <Label htmlFor="currency">Currency</Label>
+                <Label htmlFor="currency">{t.onboarding.currency}</Label>
                 <Select
                   id="currency"
                   value={currency}
@@ -214,7 +218,7 @@ export default function OnboardingPage() {
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.code} value={c.code}>
-                      {c.symbol} {c.name}
+                      {c.symbol} {t.currencies[c.code]}
                     </option>
                   ))}
                 </Select>
@@ -233,10 +237,10 @@ export default function OnboardingPage() {
                   onClick={() => setStep('choice')}
                   disabled={isLoading}
                 >
-                  Back
+                  {t.common.back}
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? 'Creating...' : 'Create Household'}
+                  {isLoading ? t.onboarding.creating : t.onboarding.createHousehold}
                 </Button>
               </div>
             </form>
@@ -244,16 +248,16 @@ export default function OnboardingPage() {
 
           {step === 'join' && (
             <form onSubmit={handleJoinHousehold} className="space-y-4">
-              <h2 className="text-xl font-bold">Join Household</h2>
+              <h2 className="text-xl font-bold">{t.onboarding.joinHousehold}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Enter the 8-character invite code your partner shared
+                {t.onboarding.inviteCodeHint}
               </p>
 
               <div>
-                <Label htmlFor="inviteCode">Invite Code</Label>
+                <Label htmlFor="inviteCode">{t.onboarding.inviteCode}</Label>
                 <Input
                   id="inviteCode"
-                  placeholder="ABC12345"
+                  placeholder={t.onboarding.inviteCodePlaceholder}
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                   required
@@ -264,10 +268,10 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <Label htmlFor="displayName">Your Name</Label>
+                <Label htmlFor="displayName">{t.onboarding.yourName}</Label>
                 <Input
                   id="displayName"
-                  placeholder="Jordan"
+                  placeholder={t.onboarding.partnerNamePlaceholder}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   required
@@ -276,11 +280,11 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <Label htmlFor="partnerIncome">Your Monthly Income</Label>
+                <Label htmlFor="partnerIncome">{t.onboarding.monthlyIncome}</Label>
                 <Input
                   id="partnerIncome"
                   type="number"
-                  placeholder="2000"
+                  placeholder={t.onboarding.partnerIncomePlaceholder}
                   value={partnerIncome}
                   onChange={(e) => setPartnerIncome(e.target.value)}
                   required
@@ -301,10 +305,10 @@ export default function OnboardingPage() {
                   onClick={() => setStep('choice')}
                   disabled={isLoading}
                 >
-                  Back
+                  {t.common.back}
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? 'Joining...' : 'Join Household'}
+                  {isLoading ? t.onboarding.joining : t.onboarding.joinHousehold}
                 </Button>
               </div>
             </form>

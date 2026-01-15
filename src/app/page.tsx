@@ -4,9 +4,11 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Heart } from 'lucide-react'
+import { useLanguage } from '@/components/LanguageProvider'
 
 export default function Home() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   useEffect(() => {
     async function checkAuth() {
@@ -39,7 +41,7 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
       <div className="flex items-center gap-2">
         <Heart className="w-8 h-8 text-blue-600 fill-blue-600 animate-pulse" />
-        <p className="text-xl">Loading...</p>
+        <p className="text-xl">{t.common.loading}</p>
       </div>
     </div>
   )

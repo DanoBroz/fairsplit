@@ -96,28 +96,29 @@ export interface AppState {
 }
 
 export const CURRENCIES = [
-  { code: 'CZK', symbol: 'Kč', name: 'Czech Koruna' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
-  { code: 'PLN', symbol: 'zł', name: 'Polish Zloty' },
+  { code: 'CZK', symbol: 'Kč' },
+  { code: 'EUR', symbol: '€' },
+  { code: 'USD', symbol: '$' },
+  { code: 'GBP', symbol: '£' },
+  { code: 'PLN', symbol: 'zł' },
 ] as const
 
 export type CurrencyCode = typeof CURRENCIES[number]['code']
 
-export const CATEGORIES = [
-  'Groceries',
-  'Utilities',
-  'Rent/Mortgage',
-  'Transportation',
-  'Entertainment',
-  'Dining Out',
-  'Healthcare',
-  'Personal Care',
-  'Clothing',
-  'Subscriptions',
-  'Gifts',
-  'Other',
+// Category keys for i18n - these map to translations.categories
+export const CATEGORY_KEYS = [
+  'groceries',
+  'utilities',
+  'rentMortgage',
+  'transportation',
+  'entertainment',
+  'diningOut',
+  'healthcare',
+  'personalCare',
+  'clothing',
+  'subscriptions',
+  'gifts',
+  'other',
 ] as const
 
-export type Category = typeof CATEGORIES[number]
+export type CategoryKey = typeof CATEGORY_KEYS[number]

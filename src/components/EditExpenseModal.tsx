@@ -7,8 +7,9 @@ import { Input } from './ui/Input'
 import { Label } from './ui/Label'
 import { Select } from './ui/Select'
 import { Modal } from './ui/Modal'
-import { Expense, ExpenseType, CATEGORIES } from '@/types'
+import { Expense, ExpenseType, CATEGORY_KEYS, CategoryKey } from '@/types'
 import { updateExpense } from '@/hooks/useExpenses'
+import { useLanguage } from './LanguageProvider'
 
 interface EditExpenseModalProps {
   isOpen: boolean
@@ -23,10 +24,11 @@ export function EditExpenseModal({
   expense,
   onSuccess,
 }: EditExpenseModalProps) {
+  const { t } = useLanguage()
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [type, setType] = useState<ExpenseType>('household')
-  const [category, setCategory] = useState<string>(CATEGORIES[0])
+  const [category, setCategory] = useState<CategoryKey>(CATEGORY_KEYS[0])
   const [includeInHousehold, setIncludeInHousehold] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,7 +39,7 @@ export function EditExpenseModal({
       setAmount(expense.amount.toString())
       setDescription(expense.description)
       setType(expense.type)
-      setCategory(expense.category)
+      setCategory(expense.category as CategoryKey)
       setIncludeInHousehold(expense.includeInHousehold)
       setError(null)
     }
@@ -61,18 +63,19 @@ export function EditExpenseModal({
 
       onClose()
       onSuccess?.()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Expense">
+    <Modal isOpen={isOpen} onClose={onClose} title={t.expense.editExpense}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <Label htmlFor="edit-amount">Amount</Label>
+          <Label htmlFor="edit-amount">{t.expense.amount}</Label>
           <Input
             id="edit-amount"
             type="number"
@@ -88,10 +91,10 @@ export function EditExpenseModal({
         </div>
 
         <div>
-          <Label htmlFor="edit-description">Description</Label>
+          <Label htmlFor="edit-description">{t.expense.description}</Label>
           <Input
             id="edit-description"
-            placeholder="What was this for?"
+            placeholder={t.expense.descriptionPlaceholder}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
@@ -100,23 +103,23 @@ export function EditExpenseModal({
         </div>
 
         <div>
-          <Label htmlFor="edit-category">Category</Label>
+          <Label htmlFor="edit-category">{t.expense.category}</Label>
           <Select
             id="edit-category"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => setCategory(e.target.value as CategoryKey)}
             disabled={isSubmitting}
           >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
+            {CATEGORY_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {t.categories[key]}
               </option>
             ))}
           </Select>
         </div>
 
         <div>
-          <Label>Type</Label>
+          <Label>{t.expense.type}</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -124,7 +127,7 @@ export function EditExpenseModal({
               onClick={() => setType('household')}
               disabled={isSubmitting}
             >
-              Household
+              {t.expense.household}
             </Button>
             <Button
               type="button"
@@ -132,14 +135,14 @@ export function EditExpenseModal({
               onClick={() => setType('private')}
               disabled={isSubmitting}
             >
-              Private
+              {t.expense.private}
             </Button>
           </div>
         </div>
 
         {type === 'private' && (
           <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <span className="text-sm">Include in household expenses?</span>
+            <span className="text-sm">{t.expense.includeInHousehold}</span>
             <input
               type="checkbox"
               checked={includeInHousehold}
@@ -158,7 +161,7 @@ export function EditExpenseModal({
 
         <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
           <Save className="w-5 h-5 mr-2" />
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
+          {isSubmitting ? t.expense.saving : t.expense.saveChanges}
         </Button>
       </form>
     </Modal>

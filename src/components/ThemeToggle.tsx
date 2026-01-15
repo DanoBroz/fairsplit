@@ -2,10 +2,12 @@
 
 import { Sun, Moon, Monitor } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
+import { useLanguage } from './LanguageProvider'
 import { Button } from './ui/Button'
 
 export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme()
+  const { t } = useLanguage()
 
   const cycleTheme = () => {
     if (theme === 'light') {
@@ -25,8 +27,8 @@ export function ThemeToggle() {
   }
 
   const getLabel = () => {
-    if (theme === 'system') return 'System'
-    return theme === 'dark' ? 'Dark' : 'Light'
+    if (theme === 'system') return t.theme.system
+    return theme === 'dark' ? t.theme.dark : t.theme.light
   }
 
   return (
@@ -35,7 +37,7 @@ export function ThemeToggle() {
       size="sm"
       onClick={cycleTheme}
       className="gap-2"
-      aria-label={`Current theme: ${getLabel()}. Click to change.`}
+      aria-label={`${t.theme.currentTheme}: ${getLabel()}`}
     >
       {getIcon()}
       <span className="hidden sm:inline text-sm">{getLabel()}</span>

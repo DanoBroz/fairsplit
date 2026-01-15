@@ -3,6 +3,7 @@
 import { Home, User } from 'lucide-react'
 import { Card } from './ui/Card'
 import { Expense, HouseholdMember } from '@/types'
+import { useLanguage } from './LanguageProvider'
 
 interface SummaryCardsProps {
   expenses: Expense[]
@@ -12,6 +13,8 @@ interface SummaryCardsProps {
 }
 
 export function SummaryCards({ expenses, members, currentUserId, currency }: SummaryCardsProps) {
+  const { t } = useLanguage()
+
   // Calculate total household expenses
   const householdExpenses = expenses.filter(
     (e) => e.type === 'household' || e.includeInHousehold
@@ -57,15 +60,13 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
     return null
   }
 
-  const currentUserSplit = memberSplits.find((s) => s.isCurrentUser)
-
   return (
     <div className="space-y-4 mb-6">
       {/* Total Household */}
       <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
         <div className="flex items-center gap-2 mb-2 opacity-90">
           <Home className="w-5 h-5" />
-          <span className="font-medium">Total Household Expenses</span>
+          <span className="font-medium">{t.summary.totalHouseholdExpenses}</span>
         </div>
         <p className="text-4xl font-bold">
           {currency} {totalHousehold.toLocaleString()}
@@ -86,28 +87,28 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
               </div>
               <span className="font-medium text-sm">
                 {split.member.displayName}
-                {split.isCurrentUser && ' (You)'}
+                {split.isCurrentUser && ` (${t.common.you})`}
               </span>
             </div>
 
             <div className="space-y-2">
               <div>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Household share ({(split.proportion * 100).toFixed(0)}%)
+                  {t.summary.householdShare} ({(split.proportion * 100).toFixed(0)}%)
                 </p>
                 <p className="font-bold text-lg">
                   {currency} {split.householdShare.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Private expenses</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t.summary.privateExpenses}</p>
                 <p className="font-semibold">
                   {currency} {split.privateTotal.toLocaleString()}
                 </p>
               </div>
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Total to pay
+                  {t.summary.totalToPay}
                 </p>
                 <p className="font-bold text-xl">
                   {currency} {split.total.toLocaleString()}
