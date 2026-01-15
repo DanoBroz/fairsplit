@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Heart } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -132,23 +131,31 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative w-full max-w-sm space-y-6">
         <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Heart className="w-8 h-8 text-blue-600 fill-blue-600" />
-            <h1 className="text-3xl font-bold">{t.onboarding.welcome}</h1>
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/25">
+              <Heart className="w-7 h-7 text-white fill-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.onboarding.welcome}</h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {t.onboarding.letsSetup}
           </p>
         </div>
 
-        <Card>
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 p-6">
           {step === 'choice' && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">{t.onboarding.getStarted}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t.onboarding.getStarted}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {t.onboarding.createOrJoin}
               </p>
               <div className="space-y-3">
@@ -169,7 +176,7 @@ export default function OnboardingPage() {
 
           {step === 'create' && (
             <form onSubmit={handleCreateHousehold} className="space-y-4">
-              <h2 className="text-xl font-bold">{t.onboarding.createHousehold}</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t.onboarding.createHousehold}</h2>
 
               <div>
                 <Label htmlFor="householdName">{t.onboarding.householdName}</Label>
@@ -248,8 +255,8 @@ export default function OnboardingPage() {
 
           {step === 'join' && (
             <form onSubmit={handleJoinHousehold} className="space-y-4">
-              <h2 className="text-xl font-bold">{t.onboarding.joinHousehold}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t.onboarding.joinHousehold}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {t.onboarding.inviteCodeHint}
               </p>
 
@@ -313,7 +320,7 @@ export default function OnboardingPage() {
               </div>
             </form>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   )

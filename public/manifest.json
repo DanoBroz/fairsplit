@@ -1,13 +1,19 @@
 {
-  "name": "FairSplit - Expense Tracker",
+  "name": "FairSplit",
   "short_name": "FairSplit",
-  "description": "Track and split expenses with your partner",
+  "description": "Track and split expenses fairly with your partner",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#f9fafb",
+  "theme_color": "#3b82f6",
   "orientation": "portrait",
   "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

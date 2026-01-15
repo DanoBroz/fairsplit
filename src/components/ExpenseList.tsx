@@ -348,6 +348,12 @@ export function ExpenseList({ expenses, members, currentUserId, currency, onRefr
     [filteredExpenses]
   )
 
+  // Calculate total sum of filtered expenses
+  const filteredTotal = useMemo(() =>
+    filteredExpenses.reduce((sum, e) => sum + e.amount, 0),
+    [filteredExpenses]
+  )
+
   const handleDelete = async (id: string) => {
     try {
       await deleteExpense(id)
@@ -410,10 +416,17 @@ export function ExpenseList({ expenses, members, currentUserId, currency, onRefr
           </button>
         </div>
 
-        {/* Count badge */}
-        <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums hidden sm:inline">
-          {filteredExpenses.length}
-        </span>
+        {/* Total sum */}
+        {filteredExpenses.length > 0 && (
+          <div className="text-right shrink-0">
+            <span className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
+              {formatAmount(filteredTotal, currency, locale)}
+            </span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1.5 tabular-nums">
+              ({filteredExpenses.length})
+            </span>
+          </div>
+        )}
       </div>
 
       {filteredExpenses.length === 0 ? (
