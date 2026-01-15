@@ -4,6 +4,7 @@ import { Home, User } from 'lucide-react'
 import { Card } from './ui/Card'
 import { Expense, HouseholdMember } from '@/types'
 import { useLanguage } from './LanguageProvider'
+import { formatAmount } from '@/lib/utils'
 
 interface SummaryCardsProps {
   expenses: Expense[]
@@ -13,7 +14,7 @@ interface SummaryCardsProps {
 }
 
 export function SummaryCards({ expenses, members, currentUserId, currency }: SummaryCardsProps) {
-  const { t } = useLanguage()
+  const { t, locale } = useLanguage()
 
   // Calculate total household expenses
   const householdExpenses = expenses.filter(
@@ -60,62 +61,89 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
     return null
   }
 
+  // Sort so current user is first
+  const sortedSplits = [...memberSplits].sort((a, b) => {
+    if (a.isCurrentUser) return -1
+    if (b.isCurrentUser) return 1
+    return 0
+  })
+
   return (
-    <div className="space-y-4 mb-6">
-      {/* Total Household */}
-      <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
-        <div className="flex items-center gap-2 mb-2 opacity-90">
-          <Home className="w-5 h-5" />
-          <span className="font-medium">{t.summary.totalHouseholdExpenses}</span>
+    <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
+      {/* Total Household - header */}
+      <div className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-2.5">
+        <div className="flex items-center gap-1.5">
+          <Home className="w-4 h-4 opacity-80" />
+          <span className="text-xs font-medium opacity-90">{t.summary.totalHouseholdExpenses}</span>
         </div>
-        <p className="text-4xl font-bold">
-          {currency} {totalHousehold.toLocaleString()}
+        <p className="text-lg font-bold">
+          {formatAmount(totalHousehold, currency, locale)}
         </p>
-      </Card>
+      </div>
 
-      {/* Individual contributions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {memberSplits.map((split, index) => (
-          <Card key={split.member.id} className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  index === 0 ? 'bg-blue-500' : 'bg-purple-500'
-                }`}
-              >
-                <User className="w-4 h-4 text-white" />
+      {/* Individual contributions - always stacked */}
+      <div className="divide-y divide-gray-100 dark:divide-gray-700">
+        {sortedSplits.map((split) => (
+          <div
+            key={split.member.id}
+            className={`px-3 py-2.5 ${
+              split.isCurrentUser ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              {/* Left: Avatar + Name + Percentage */}
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                    split.isCurrentUser
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600'
+                      : 'bg-gradient-to-br from-purple-500 to-purple-600'
+                  }`}
+                >
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                      {split.member.displayName}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                        split.isCurrentUser
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                      }`}
+                    >
+                      {(split.proportion * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {t.summary.householdShare}: {formatAmount(split.householdShare, currency, locale)}
+                  </span>
+                </div>
               </div>
-              <span className="font-medium text-sm">
-                {split.member.displayName}
-                {split.isCurrentUser && ` (${t.common.you})`}
-              </span>
-            </div>
 
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {t.summary.householdShare} ({(split.proportion * 100).toFixed(0)}%)
-                </p>
-                <p className="font-bold text-lg">
-                  {currency} {split.householdShare.toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t.summary.privateExpenses}</p>
-                <p className="font-semibold">
-                  {currency} {split.privateTotal.toLocaleString()}
-                </p>
-              </div>
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {/* Right: Total amount */}
+              <div className="text-right shrink-0">
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 block">
                   {t.summary.totalToPay}
-                </p>
-                <p className="font-bold text-xl">
-                  {currency} {split.total.toLocaleString()}
-                </p>
+                </span>
+                <span
+                  className={`text-base font-bold ${
+                    split.isCurrentUser
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-gray-900 dark:text-gray-100'
+                  }`}
+                >
+                  {formatAmount(
+                    split.isCurrentUser ? split.total : split.householdShare,
+                    currency,
+                    locale
+                  )}
+                </span>
               </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </div>
