@@ -124,6 +124,7 @@ export default function AppPage() {
               members={members}
               currentUserId={currentUserId}
               currency={household.currency}
+              onRefresh={refetch}
             />
           )}
         </div>

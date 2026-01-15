@@ -136,11 +136,10 @@ export async function updateExpense(
 export async function deleteExpense(id: string) {
   const supabase = createClient()
 
-  // Soft delete
-  const { error } = await supabase
-    .from('expenses')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
+  // Use RPC function for soft delete (bypasses RLS issues)
+  const { error } = await supabase.rpc('soft_delete_expense', {
+    expense_id: id
+  })
 
   if (error) throw error
 }
