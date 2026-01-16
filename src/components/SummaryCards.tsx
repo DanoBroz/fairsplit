@@ -52,17 +52,22 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
     )
     const ownerOnlyTotal = ownerOnlyExpenses.reduce((sum, e) => sum + e.amount, 0)
 
-    // Calculate household share (proportional share of shared expenses + their owner-only expenses)
-    const householdShare = totalSharedHousehold * proportion + ownerOnlyTotal
+    // Proportional share of shared expenses only (for display)
+    const proportionalShare = totalSharedHousehold * proportion
 
-    // Total they should pay
-    const total = householdShare + privateTotal
+    // Household total = proportional share + their owner-only expenses
+    const householdTotal = proportionalShare + ownerOnlyTotal
+
+    // Total they should pay (includes private expenses)
+    const total = householdTotal + privateTotal
 
     return {
       member,
       proportion,
+      proportionalShare,
+      ownerOnlyTotal,
       privateTotal,
-      householdShare,
+      householdTotal,
       total,
       isCurrentUser: member.userId === currentUserId,
     }
@@ -131,7 +136,7 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
                     </span>
                   </div>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {t.summary.householdShare}: {formatAmount(split.householdShare, currency, locale)}
+                    {t.summary.householdShare}: {formatAmount(split.proportionalShare, currency, locale)}
                   </span>
                 </div>
               </div>
@@ -149,7 +154,7 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
                   }`}
                 >
                   {formatAmount(
-                    split.isCurrentUser ? split.total : split.householdShare,
+                    split.isCurrentUser ? split.total : split.householdTotal,
                     currency,
                     locale
                   )}
