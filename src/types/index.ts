@@ -55,6 +55,7 @@ export interface Expense {
   type: ExpenseType
   paidBy: string // userId
   includeInHousehold: boolean
+  paidByOwnerOnly: boolean // When true, only the owner pays (no proportional split) even if in household
   date: string
   createdAt: string
   updatedAt: string
@@ -70,6 +71,7 @@ export interface LocalExpense {
   type: ExpenseType
   paidBy: Person
   includeInHousehold: boolean
+  paidByOwnerOnly?: boolean
   date: string
 }
 

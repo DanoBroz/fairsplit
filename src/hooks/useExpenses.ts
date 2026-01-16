@@ -39,6 +39,7 @@ export function useExpenses(householdId: string | null) {
           type: e.type,
           paidBy: e.paid_by,
           includeInHousehold: e.include_in_household,
+          paidByOwnerOnly: e.paid_by_owner_only ?? false,
           date: e.date,
           createdAt: e.created_at,
           updatedAt: e.updated_at,
@@ -96,6 +97,7 @@ export async function addExpense(expense: Omit<Expense, 'id' | 'createdAt' | 'up
       type: expense.type,
       paid_by: expense.paidBy,
       include_in_household: expense.includeInHousehold,
+      paid_by_owner_only: expense.paidByOwnerOnly ?? false,
       date: expense.date,
     })
     .select()
@@ -120,6 +122,8 @@ export async function updateExpense(
   if (updates.paidBy !== undefined) snakeCaseUpdates.paid_by = updates.paidBy
   if (updates.includeInHousehold !== undefined)
     snakeCaseUpdates.include_in_household = updates.includeInHousehold
+  if (updates.paidByOwnerOnly !== undefined)
+    snakeCaseUpdates.paid_by_owner_only = updates.paidByOwnerOnly
   if (updates.date !== undefined) snakeCaseUpdates.date = updates.date
 
   const { data, error } = await supabase

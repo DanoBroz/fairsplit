@@ -25,7 +25,7 @@ import { Button } from './ui/Button'
 import { Card } from './ui/Card'
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
 import { cs, enUS } from 'date-fns/locale'
-import { deleteExpense, updateExpense } from '@/hooks/useExpenses'
+import { deleteExpense } from '@/hooks/useExpenses'
 import { EditExpenseModal } from './EditExpenseModal'
 import { useLanguage } from './LanguageProvider'
 import { Translations } from '@/i18n'
@@ -67,7 +67,6 @@ interface SwipeableCardProps {
   getMemberName: (userId: string) => string
   onEdit: () => void
   onDelete: () => void
-  onToggleHousehold: (include: boolean) => void
   t: Translations
   locale: string
 }
@@ -82,7 +81,6 @@ function SwipeableCard({
   getMemberName,
   onEdit,
   onDelete,
-  onToggleHousehold,
   t,
   locale,
 }: SwipeableCardProps) {
@@ -230,13 +228,21 @@ function SwipeableCard({
             </p>
           </div>
 
-          {/* Amount */}
+          {/* Amount and badges */}
           <div className="flex flex-col items-end shrink-0">
-            <p className={`text-sm font-semibold tabular-nums ${
-              isHousehold ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
-            }`}>
-              {formatAmount(expense.amount, currency, locale)}
-            </p>
+            <div className="flex items-center gap-1.5">
+              {/* Badge for paidByOwnerOnly - shows when expense is in household but only owner pays */}
+              {expense.includeInHousehold && expense.paidByOwnerOnly && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                  <User className="w-2.5 h-2.5" />
+                </span>
+              )}
+              <p className={`text-sm font-semibold tabular-nums ${
+                isHousehold ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
+              }`}>
+                {formatAmount(expense.amount, currency, locale)}
+              </p>
+            </div>
 
             {/* Desktop action buttons */}
             <div className="hidden sm:flex items-center gap-0.5 mt-0.5">
@@ -261,21 +267,6 @@ function SwipeableCard({
             </div>
           </div>
         </div>
-
-        {/* Include in household - separate row for private expenses */}
-        {expense.type === 'private' && isYours && (
-          <div className="px-3 pb-2 pt-0 ml-[52px]">
-            <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-gray-500 hover:text-blue-600 transition-colors">
-              <input
-                type="checkbox"
-                checked={expense.includeInHousehold}
-                onChange={(e) => onToggleHousehold(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
-              />
-              <span>{t.expense.includeInHousehold}</span>
-            </label>
-          </div>
-        )}
       </div>
     </div>
   )
@@ -390,14 +381,6 @@ export function ExpenseList({ expenses, members, currentUserId, currency, onRefr
     }
   }
 
-  const handleToggleHousehold = async (id: string, include: boolean) => {
-    try {
-      await updateExpense(id, { includeInHousehold: include })
-      onRefresh?.()
-    } catch (err) {
-      console.error('Failed to update expense:', err)
-    }
-  }
 
   return (
     <div className="space-y-2">
@@ -511,7 +494,6 @@ export function ExpenseList({ expenses, members, currentUserId, currency, onRefr
                       getMemberName={getMemberName}
                       onEdit={() => setEditingExpense(expense)}
                       onDelete={() => handleDelete(expense.id)}
-                      onToggleHousehold={(include) => handleToggleHousehold(expense.id, include)}
                       t={t}
                       locale={locale}
                     />

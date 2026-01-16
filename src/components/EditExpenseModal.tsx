@@ -30,6 +30,7 @@ export function EditExpenseModal({
   const [type, setType] = useState<ExpenseType>('household')
   const [category, setCategory] = useState<CategoryKey>(CATEGORY_KEYS[0])
   const [includeInHousehold, setIncludeInHousehold] = useState(false)
+  const [paidByOwnerOnly, setPaidByOwnerOnly] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,6 +42,7 @@ export function EditExpenseModal({
       setType(expense.type)
       setCategory(expense.category as CategoryKey)
       setIncludeInHousehold(expense.includeInHousehold)
+      setPaidByOwnerOnly(expense.paidByOwnerOnly ?? false)
       setError(null)
     }
   }, [expense])
@@ -59,12 +61,16 @@ export function EditExpenseModal({
         type,
         category,
         includeInHousehold: type === 'private' ? includeInHousehold : false,
+        paidByOwnerOnly: type === 'private' && includeInHousehold ? paidByOwnerOnly : false,
       })
 
       onClose()
       onSuccess?.()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err)
+      // Handle Supabase PostgrestError and standard errors
+      const message = err && typeof err === 'object' && 'message' in err
+        ? String((err as { message: unknown }).message)
+        : String(err)
       setError(message)
     } finally {
       setIsSubmitting(false)
@@ -141,15 +147,35 @@ export function EditExpenseModal({
         </div>
 
         {type === 'private' && (
-          <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <span className="text-sm">{t.expense.includeInHousehold}</span>
-            <input
-              type="checkbox"
-              checked={includeInHousehold}
-              onChange={(e) => setIncludeInHousehold(e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300"
-              disabled={isSubmitting}
-            />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <span className="text-sm">{t.expense.includeInHousehold}</span>
+              <input
+                type="checkbox"
+                checked={includeInHousehold}
+                onChange={(e) => {
+                  setIncludeInHousehold(e.target.checked)
+                  if (!e.target.checked) setPaidByOwnerOnly(false)
+                }}
+                className="w-5 h-5 rounded border-gray-300"
+                disabled={isSubmitting}
+              />
+            </div>
+            {includeInHousehold && (
+              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg ml-4">
+                <div>
+                  <span className="text-sm">{t.expense.paidByOwnerOnly}</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t.expense.paidByOwnerOnlyHint}</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={paidByOwnerOnly}
+                  onChange={(e) => setPaidByOwnerOnly(e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-300"
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
         )}
 

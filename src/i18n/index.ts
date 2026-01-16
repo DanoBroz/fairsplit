@@ -92,6 +92,8 @@ export interface Translations {
     private: string
     paidBy: string
     includeInHousehold: string
+    paidByOwnerOnly: string
+    paidByOwnerOnlyHint: string
     swipeHint: string
     noMatch: string
     filterAll: string

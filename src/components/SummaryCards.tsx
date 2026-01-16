@@ -16,11 +16,18 @@ interface SummaryCardsProps {
 export function SummaryCards({ expenses, members, currentUserId, currency }: SummaryCardsProps) {
   const { t, locale } = useLanguage()
 
-  // Calculate total household expenses
+  // Calculate total household expenses (for display)
   const householdExpenses = expenses.filter(
     (e) => e.type === 'household' || e.includeInHousehold
   )
   const totalHousehold = householdExpenses.reduce((sum, e) => sum + e.amount, 0)
+
+  // Calculate shared household pool (expenses split proportionally)
+  // Excludes paidByOwnerOnly expenses - those are paid only by the owner
+  const sharedHouseholdExpenses = expenses.filter(
+    (e) => e.type === 'household' || (e.includeInHousehold && !e.paidByOwnerOnly)
+  )
+  const totalSharedHousehold = sharedHouseholdExpenses.reduce((sum, e) => sum + e.amount, 0)
 
   // Calculate total income
   const totalIncome = members.reduce((sum, m) => sum + m.income, 0)
@@ -39,8 +46,14 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
     )
     const privateTotal = privateExpenses.reduce((sum, e) => sum + e.amount, 0)
 
-    // Calculate household share
-    const householdShare = totalHousehold * proportion
+    // Calculate paidByOwnerOnly expenses for this member (in household but only they pay)
+    const ownerOnlyExpenses = expenses.filter(
+      (e) => e.paidBy === member.userId && e.includeInHousehold && e.paidByOwnerOnly
+    )
+    const ownerOnlyTotal = ownerOnlyExpenses.reduce((sum, e) => sum + e.amount, 0)
+
+    // Calculate household share (proportional share of shared expenses + their owner-only expenses)
+    const householdShare = totalSharedHousehold * proportion + ownerOnlyTotal
 
     // Total they should pay
     const total = householdShare + privateTotal

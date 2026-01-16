@@ -92,6 +92,8 @@ export const en: Translations = {
     private: 'Private',
     paidBy: 'Paid by',
     includeInHousehold: 'Include in household expenses',
+    paidByOwnerOnly: 'Only I pay for this',
+    paidByOwnerOnlyHint: 'Partner won\'t share this cost',
     swipeHint: 'Swipe left for actions',
     noMatch: 'No expenses match this filter',
     filterAll: 'All',

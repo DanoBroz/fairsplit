@@ -92,6 +92,8 @@ export const cs: Translations = {
     private: 'Osobní',
     paidBy: 'Zaplatil/a',
     includeInHousehold: 'Zahrnout do výdajů domácnosti',
+    paidByOwnerOnly: 'Platím jen já',
+    paidByOwnerOnlyHint: 'Partner se na tom nepodílí',
     swipeHint: 'Přejeďte doleva pro akce',
     noMatch: 'Žádné výdaje neodpovídají filtru',
     filterAll: 'Vše',
