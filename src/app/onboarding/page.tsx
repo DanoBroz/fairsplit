@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/Select'
 import { createClient } from '@/lib/supabase/client'
 import { CURRENCIES, type CurrencyCode } from '@/types'
 import { useLanguage } from '@/components/LanguageProvider'
+import { LanguageToggle } from '@/components/LanguageToggle'
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -132,6 +133,11 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
+      {/* Language toggle - top right */}
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageToggle />
+      </div>
+
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
