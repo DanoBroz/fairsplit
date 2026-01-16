@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { Home, User } from 'lucide-react'
-import { Card } from './ui/Card'
 import { Expense, HouseholdMember } from '@/types'
 import { useLanguage } from './LanguageProvider'
 import { formatAmount } from '@/lib/utils'
+
+type MyViewType = 'householdShare' | 'total'
 
 interface SummaryCardsProps {
   expenses: Expense[]
@@ -15,6 +17,7 @@ interface SummaryCardsProps {
 
 export function SummaryCards({ expenses, members, currentUserId, currency }: SummaryCardsProps) {
   const { t, locale } = useLanguage()
+  const [myViewType, setMyViewType] = useState<MyViewType>('householdShare')
 
   // Calculate total household expenses (for display)
   const householdExpenses = expenses.filter(
@@ -86,6 +89,11 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
     return 0
   })
 
+  // Toggle between household share and total for current user
+  const toggleMyView = () => {
+    setMyViewType((current) => current === 'householdShare' ? 'total' : 'householdShare')
+  }
+
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
       {/* Total Household - header */}
@@ -99,7 +107,7 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
         </p>
       </div>
 
-      {/* Individual contributions - always stacked */}
+      {/* Individual contributions */}
       <div className="divide-y divide-gray-100 dark:divide-gray-700">
         {sortedSplits.map((split) => (
           <div
@@ -141,25 +149,38 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
                 </div>
               </div>
 
-              {/* Right: Total amount */}
-              <div className="text-right shrink-0">
-                <span className="text-[10px] text-gray-400 dark:text-gray-500 block">
-                  {t.summary.totalToPay}
-                </span>
-                <span
-                  className={`text-base font-bold ${
-                    split.isCurrentUser
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-900 dark:text-gray-100'
-                  }`}
+              {/* Right: Total amount - clickable for current user */}
+              {split.isCurrentUser ? (
+                <button
+                  onClick={toggleMyView}
+                  className="flex flex-col items-end shrink-0 px-2 py-1 -mr-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/20 active:bg-blue-100 dark:active:bg-blue-900/20 transition-colors"
                 >
-                  {formatAmount(
-                    split.isCurrentUser ? split.total : split.householdTotal,
-                    currency,
-                    locale
-                  )}
-                </span>
-              </div>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    {myViewType === 'householdShare' ? t.summary.toHomeAccount : t.summary.totalToPay}
+                  </span>
+                  <span className="text-base font-bold text-blue-600 dark:text-blue-400">
+                    {formatAmount(
+                      myViewType === 'householdShare' ? split.householdTotal : split.total,
+                      currency,
+                      locale
+                    )}
+                  </span>
+                  {/* Dots indicator */}
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <div className={`w-1 h-1 rounded-full ${myViewType === 'householdShare' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-1 h-1 rounded-full ${myViewType === 'total' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                  </div>
+                </button>
+              ) : (
+                <div className="text-right shrink-0">
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 block">
+                    {t.summary.totalToPay}
+                  </span>
+                  <span className="text-base font-bold text-gray-900 dark:text-gray-100">
+                    {formatAmount(split.householdTotal, currency, locale)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         ))}

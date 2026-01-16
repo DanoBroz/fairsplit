@@ -74,6 +74,7 @@ export const cs: Translations = {
     totalHouseholdExpenses: 'Celkové výdaje domácnosti',
     householdShare: 'Podíl na domácnosti',
     privateExpenses: 'Osobní výdaje',
+    toHomeAccount: 'Na domácí účet',
     totalToPay: 'Celkem k úhradě',
   },
 

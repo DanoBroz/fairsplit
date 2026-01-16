@@ -74,6 +74,7 @@ export interface Translations {
     totalHouseholdExpenses: string
     householdShare: string
     privateExpenses: string
+    toHomeAccount: string
     totalToPay: string
   }
 

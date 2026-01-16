@@ -74,6 +74,7 @@ export const en: Translations = {
     totalHouseholdExpenses: 'Total Household Expenses',
     householdShare: 'Household share',
     privateExpenses: 'Private expenses',
+    toHomeAccount: 'To home account',
     totalToPay: 'Total to pay',
   },
 
