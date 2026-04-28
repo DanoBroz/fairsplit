@@ -204,10 +204,6 @@ export function AddExpenseModal({
         )}
 
         <div className="grid grid-cols-2 gap-2">
-          <Button type="submit" disabled={isSubmitting} className="gap-2 px-3 py-3 text-sm whitespace-nowrap">
-            <Plus className="w-4 h-4 shrink-0" strokeWidth={2.5} />
-            <span>{isSubmitting ? t.expense.adding : t.expense.addExpense}</span>
-          </Button>
           <Button
             type="submit"
             variant="outline"
@@ -221,6 +217,10 @@ export function AddExpenseModal({
           >
             <Plus className="w-4 h-4 shrink-0" strokeWidth={2.5} />
             <span>{t.expense.addTemporary}</span>
+          </Button>
+          <Button type="submit" disabled={isSubmitting} className="gap-2 px-3 py-3 text-sm whitespace-nowrap">
+            <Plus className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+            <span>{isSubmitting ? t.expense.adding : t.expense.addExpense}</span>
           </Button>
         </div>
       </form>
