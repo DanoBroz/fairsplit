@@ -80,6 +80,7 @@ export interface Translations {
 
   expense: {
     addExpense: string
+    addTemporary: string
     editExpense: string
     adding: string
     saving: string

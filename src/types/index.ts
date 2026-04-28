@@ -56,6 +56,7 @@ export interface Expense {
   paidBy: string // userId
   includeInHousehold: boolean
   paidByOwnerOnly: boolean // When true, only the owner pays (no proportional split) even if in household
+  isTemporary: boolean
   date: string
   createdAt: string
   updatedAt: string

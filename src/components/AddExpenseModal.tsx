@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
@@ -38,6 +38,7 @@ export function AddExpenseModal({
   const [paidByOwnerOnly, setPaidByOwnerOnly] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const submitAsTemporaryRef = useRef(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,6 +46,9 @@ export function AddExpenseModal({
 
     setIsSubmitting(true)
     setError(null)
+
+    const isTemporary = submitAsTemporaryRef.current
+    submitAsTemporaryRef.current = false
 
     try {
       await addExpense({
@@ -55,6 +59,7 @@ export function AddExpenseModal({
         paidBy: currentUserId,
         includeInHousehold: type === 'private' ? includeInHousehold : false,
         paidByOwnerOnly: type === 'private' && includeInHousehold ? paidByOwnerOnly : false,
+        isTemporary,
         date: new Date().toISOString(),
         category,
       })
@@ -198,10 +203,26 @@ export function AddExpenseModal({
           </div>
         )}
 
-        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-          <Plus className="w-5 h-5 mr-2" />
-          {isSubmitting ? t.expense.adding : t.expense.addExpense}
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button type="submit" disabled={isSubmitting} className="gap-2 px-3 py-3 text-sm whitespace-nowrap">
+            <Plus className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+            <span>{isSubmitting ? t.expense.adding : t.expense.addExpense}</span>
+          </Button>
+          <Button
+            type="submit"
+            variant="outline"
+            disabled={isSubmitting}
+            onMouseDown={() => { submitAsTemporaryRef.current = true }}
+            onTouchStart={() => { submitAsTemporaryRef.current = true }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') submitAsTemporaryRef.current = true
+            }}
+            className="gap-2 px-3 py-3 text-sm whitespace-nowrap border-amber-400 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950/40"
+          >
+            <Plus className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+            <span>{t.expense.addTemporary}</span>
+          </Button>
+        </div>
       </form>
     </Modal>
   )

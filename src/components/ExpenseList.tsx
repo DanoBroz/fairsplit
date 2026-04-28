@@ -154,9 +154,12 @@ function SwipeableCard({
   const categoryKey = expense.category as CategoryKey
   const translatedCategory = t.categories[categoryKey] || expense.category
   const CategoryIcon = categoryIcons[expense.category] || MoreHorizontal
+  const isTemporary = expense.isTemporary
 
   return (
-    <div className="relative overflow-hidden rounded-lg bg-white dark:bg-gray-800">
+    <div className={`relative overflow-hidden rounded-lg bg-white dark:bg-gray-800 ${
+      isTemporary ? 'border-l-2 border-amber-400 dark:border-amber-700' : ''
+    }`}>
       {/* Action buttons - positioned on the right */}
       {buttonCount > 0 && (
         <div
@@ -204,14 +207,18 @@ function SwipeableCard({
         <div className="flex items-center gap-3 px-3 py-2.5">
           {/* Category icon */}
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            isHousehold
-              ? 'bg-blue-50 dark:bg-blue-900/20'
-              : 'bg-gray-100 dark:bg-gray-700/50'
+            isTemporary
+              ? 'bg-amber-50 dark:bg-amber-900/20'
+              : isHousehold
+                ? 'bg-blue-50 dark:bg-blue-900/20'
+                : 'bg-gray-100 dark:bg-gray-700/50'
           }`}>
             <CategoryIcon className={`w-5 h-5 ${
-              isHousehold
-                ? 'text-blue-500 dark:text-blue-400'
-                : 'text-gray-400 dark:text-gray-500'
+              isTemporary
+                ? 'text-amber-600 dark:text-amber-400'
+                : isHousehold
+                  ? 'text-blue-500 dark:text-blue-400'
+                  : 'text-gray-400 dark:text-gray-500'
             }`} />
           </div>
 
@@ -238,7 +245,11 @@ function SwipeableCard({
                 </span>
               )}
               <p className={`text-sm font-semibold tabular-nums ${
-                isHousehold ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
+                isTemporary
+                  ? 'text-amber-700 dark:text-amber-400'
+                  : isHousehold
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-900 dark:text-white'
               }`}>
                 {formatAmount(expense.amount, currency, locale)}
               </p>

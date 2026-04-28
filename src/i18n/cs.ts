@@ -80,6 +80,7 @@ export const cs: Translations = {
 
   expense: {
     addExpense: 'Přidat výdaj',
+    addTemporary: 'Dočasný',
     editExpense: 'Upravit výdaj',
     adding: 'Přidávám...',
     saving: 'Ukládám...',

@@ -45,6 +45,7 @@ CREATE TABLE expenses (
   type TEXT NOT NULL CHECK (type IN ('household', 'private')),
   paid_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   include_in_household BOOLEAN NOT NULL DEFAULT false,
+  is_temporary BOOLEAN NOT NULL DEFAULT false,
   date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

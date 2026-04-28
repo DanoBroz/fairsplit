@@ -80,6 +80,7 @@ export const en: Translations = {
 
   expense: {
     addExpense: 'Add Expense',
+    addTemporary: 'Temporary',
     editExpense: 'Edit Expense',
     adding: 'Adding...',
     saving: 'Saving...',
