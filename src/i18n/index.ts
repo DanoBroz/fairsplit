@@ -113,6 +113,7 @@ export interface Translations {
     displayNameHint: string
     monthlyIncome: string
     incomeHint: string
+    remaining: string
   }
 
   theme: {

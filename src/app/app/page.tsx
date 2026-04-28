@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, Plus, Pencil, Check, LogOut, Users, User, Crown, UserPlus, Home, FlaskConical } from 'lucide-react'
+import { Heart, Plus, Pencil, Check, LogOut, Users, User, Crown, UserPlus, Home, FlaskConical, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useHousehold } from '@/hooks/useHousehold'
 import { useExpenses } from '@/hooks/useExpenses'
@@ -21,6 +21,7 @@ import { PreviewModeToggle } from '@/components/PreviewModeToggle'
 import { PreviewModeBar } from '@/components/PreviewModeBar'
 import { formatAmount } from '@/lib/utils'
 import type { HouseholdMember } from '@/types'
+import { calculateMemberSplits } from '@/lib/calculateMemberSplits'
 
 export default function AppPage() {
   const router = useRouter()
@@ -93,6 +94,11 @@ function AppPageContent({ expensesLoading }: { expensesLoading: boolean }) {
       .reduce((sum, e) => sum + e.amount, 0)
     return { all: allTotal, household: householdTotal, private: privateTotal }
   }, [expenses, currentUserId])
+
+  const splitByUserId = useMemo(() => {
+    const splits = calculateMemberSplits(expenses, members)
+    return new Map(splits.map((s) => [s.member.userId, s]))
+  }, [expenses, members])
 
   const copyInviteCode = async () => {
     if (!household?.inviteCode) return
@@ -200,6 +206,8 @@ function AppPageContent({ expensesLoading }: { expensesLoading: boolean }) {
                   const isCurrentUser = member.userId === currentUserId
                   const isOwner = member.role === 'owner'
                   const showSimulatePencil = previewActive && !isCurrentUser
+                  const split = splitByUserId.get(member.userId)
+                  const remaining = member.income - (split?.total ?? 0)
                   return (
                     <div
                       key={member.id}
@@ -230,6 +238,14 @@ function AppPageContent({ expensesLoading }: { expensesLoading: boolean }) {
                               <span className="inline-flex items-center" title={t.preview.simulatedBadge}>
                                 <FlaskConical className="w-2.5 h-2.5 text-amber-500" />
                               </span>
+                            )}
+                            {member.income > 0 && (
+                              <>
+                                <ArrowRight className="w-3 h-3 opacity-70" aria-hidden="true" />
+                                <span className={remaining < 0 ? 'text-red-500 dark:text-red-400' : ''}>
+                                  {formatAmount(remaining, household.currency, locale)} {t.profile.remaining}
+                                </span>
+                              </>
                             )}
                           </span>
                         </div>

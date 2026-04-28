@@ -113,6 +113,7 @@ export const cs: Translations = {
     displayNameHint: 'Takto vás uvidí ostatní členové domácnosti',
     monthlyIncome: 'Měsíční příjem',
     incomeHint: 'Používá se pro výpočet spravedlivého rozdělení výdajů',
+    remaining: 'zbývá',
   },
 
   theme: {

@@ -5,6 +5,7 @@ import { Home, User } from 'lucide-react'
 import { Expense, HouseholdMember } from '@/types'
 import { useLanguage } from './LanguageProvider'
 import { formatAmount } from '@/lib/utils'
+import { calculateMemberSplits } from '@/lib/calculateMemberSplits'
 
 type MyViewType = 'householdShare' | 'total'
 
@@ -19,62 +20,14 @@ export function SummaryCards({ expenses, members, currentUserId, currency }: Sum
   const { t, locale } = useLanguage()
   const [myViewType, setMyViewType] = useState<MyViewType>('householdShare')
 
-  // Calculate total household expenses (for display)
-  const householdExpenses = expenses.filter(
-    (e) => e.type === 'household' || e.includeInHousehold
-  )
-  const totalHousehold = householdExpenses.reduce((sum, e) => sum + e.amount, 0)
+  const totalHousehold = expenses
+    .filter((e) => e.type === 'household' || e.includeInHousehold)
+    .reduce((sum, e) => sum + e.amount, 0)
 
-  // Calculate shared household pool (expenses split proportionally)
-  // Excludes paidByOwnerOnly expenses - those are paid only by the owner
-  const sharedHouseholdExpenses = expenses.filter(
-    (e) => e.type === 'household' || (e.includeInHousehold && !e.paidByOwnerOnly)
-  )
-  const totalSharedHousehold = sharedHouseholdExpenses.reduce((sum, e) => sum + e.amount, 0)
-
-  // Calculate total income
-  const totalIncome = members.reduce((sum, m) => sum + m.income, 0)
-
-  // If no income set, distribute equally
-  const hasIncome = totalIncome > 0
-
-  // Calculate splits for each member
-  const memberSplits = members.map((member) => {
-    // Calculate proportion based on income
-    const proportion = hasIncome ? member.income / totalIncome : 1 / members.length
-
-    // Calculate private expenses (only for that user, not included in household)
-    const privateExpenses = expenses.filter(
-      (e) => e.paidBy === member.userId && e.type === 'private' && !e.includeInHousehold
-    )
-    const privateTotal = privateExpenses.reduce((sum, e) => sum + e.amount, 0)
-
-    // Calculate paidByOwnerOnly expenses for this member (in household but only they pay)
-    const ownerOnlyExpenses = expenses.filter(
-      (e) => e.paidBy === member.userId && e.includeInHousehold && e.paidByOwnerOnly
-    )
-    const ownerOnlyTotal = ownerOnlyExpenses.reduce((sum, e) => sum + e.amount, 0)
-
-    // Proportional share of shared expenses only (for display)
-    const proportionalShare = totalSharedHousehold * proportion
-
-    // Household total = proportional share + their owner-only expenses
-    const householdTotal = proportionalShare + ownerOnlyTotal
-
-    // Total they should pay (includes private expenses)
-    const total = householdTotal + privateTotal
-
-    return {
-      member,
-      proportion,
-      proportionalShare,
-      ownerOnlyTotal,
-      privateTotal,
-      householdTotal,
-      total,
-      isCurrentUser: member.userId === currentUserId,
-    }
-  })
+  const memberSplits = calculateMemberSplits(expenses, members).map((split) => ({
+    ...split,
+    isCurrentUser: split.member.userId === currentUserId,
+  }))
 
   const hasExpenses = totalHousehold > 0 || memberSplits.some((m) => m.privateTotal > 0)
 
