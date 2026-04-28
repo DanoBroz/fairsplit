@@ -25,9 +25,9 @@ import { Button } from './ui/Button'
 import { Card } from './ui/Card'
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
 import { cs, enUS } from 'date-fns/locale'
-import { deleteExpense } from '@/hooks/useExpenses'
 import { EditExpenseModal } from './EditExpenseModal'
 import { useLanguage } from './LanguageProvider'
+import { usePreviewMode } from './PreviewModeProvider'
 import { Translations } from '@/i18n'
 import { formatAmount } from '@/lib/utils'
 
@@ -310,6 +310,7 @@ type SumType = 'all' | 'household' | 'private'
 
 export function ExpenseList({ expenses, members, currentUserId, currency, onRefresh }: ExpenseListProps) {
   const { t, locale } = useLanguage()
+  const { deleteExpense } = usePreviewMode()
   const [filter, setFilter] = useState<FilterType>('all')
   const [sumType, setSumType] = useState<SumType>('all')
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)

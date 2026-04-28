@@ -149,4 +149,21 @@ export const cs: Translations = {
     owner: 'Vlastník',
     member: 'Člen',
   },
+
+  preview: {
+    enter: 'Náhled',
+    label: 'Režim náhledu',
+    save: 'Uložit změny',
+    saving: 'Ukládám...',
+    discard: 'Zahodit',
+    noChangesYet: 'Zatím žádné změny',
+    pendingCount: 'Nevyřízené změny: {n}',
+    simulatedCount: 'Simulované příjmy: {n}',
+    discardConfirmTitle: 'Zahodit změny v náhledu?',
+    discardConfirmMessage: 'Všechny změny provedené v režimu náhledu budou ztraceny. Tuto akci nelze vrátit.',
+    simulateIncomeTitle: 'Simulovat příjem',
+    simulateIncomeHint: 'Vyzkoušejte jiný příjem pro: {name}. Toto je pouze simulace „co kdyby" — neuloží se.',
+    applySimulation: 'Použít simulaci',
+    simulatedBadge: 'Simulováno',
+  },
 }

@@ -149,4 +149,21 @@ export interface Translations {
     owner: string
     member: string
   }
+
+  preview: {
+    enter: string
+    label: string
+    save: string
+    saving: string
+    discard: string
+    noChangesYet: string
+    pendingCount: string
+    simulatedCount: string
+    discardConfirmTitle: string
+    discardConfirmMessage: string
+    simulateIncomeTitle: string
+    simulateIncomeHint: string
+    applySimulation: string
+    simulatedBadge: string
+  }
 }

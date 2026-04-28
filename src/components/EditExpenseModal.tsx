@@ -8,8 +8,8 @@ import { Label } from './ui/Label'
 import { Select } from './ui/Select'
 import { Modal } from './ui/Modal'
 import { Expense, ExpenseType, CATEGORY_KEYS, CategoryKey } from '@/types'
-import { updateExpense } from '@/hooks/useExpenses'
 import { useLanguage } from './LanguageProvider'
+import { usePreviewMode } from './PreviewModeProvider'
 
 interface EditExpenseModalProps {
   isOpen: boolean
@@ -25,6 +25,7 @@ export function EditExpenseModal({
   onSuccess,
 }: EditExpenseModalProps) {
   const { t } = useLanguage()
+  const { updateExpense } = usePreviewMode()
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [type, setType] = useState<ExpenseType>('household')

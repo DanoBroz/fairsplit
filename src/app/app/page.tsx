@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, Plus, Pencil, Copy, Check, LogOut, Users, User, Crown, UserPlus, Home } from 'lucide-react'
+import { Heart, Plus, Pencil, Check, LogOut, Users, User, Crown, UserPlus, Home, FlaskConical } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useHousehold } from '@/hooks/useHousehold'
 import { useExpenses } from '@/hooks/useExpenses'
 import { AddExpenseModal } from '@/components/AddExpenseModal'
 import { EditProfileModal } from '@/components/EditProfileModal'
+import { SimulateIncomeModal } from '@/components/SimulateIncomeModal'
 import { ExpenseList } from '@/components/ExpenseList'
 import { SummaryCards } from '@/components/SummaryCards'
 import { Button } from '@/components/ui/Button'
@@ -15,19 +16,73 @@ import { Card } from '@/components/ui/Card'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { LanguageToggle } from '@/components/LanguageToggle'
 import { useLanguage } from '@/components/LanguageProvider'
+import { PreviewModeProvider, usePreviewMode } from '@/components/PreviewModeProvider'
+import { PreviewModeToggle } from '@/components/PreviewModeToggle'
+import { PreviewModeBar } from '@/components/PreviewModeBar'
 import { formatAmount } from '@/lib/utils'
+import type { HouseholdMember } from '@/types'
 
 export default function AppPage() {
   const router = useRouter()
-  const { t, locale } = useLanguage()
+  const { t } = useLanguage()
   const { household, members, currentUserId, loading: householdLoading, refetch: refetchHousehold } = useHousehold()
   const { expenses, loading: expensesLoading, refetch } = useExpenses(household?.id || null)
+
+  if (householdLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <Heart className="w-12 h-12 text-blue-600 fill-blue-600 animate-pulse" />
+            <div className="absolute inset-0 w-12 h-12 bg-blue-600/20 rounded-full animate-ping" />
+          </div>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t.common.loading}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!household || !currentUserId) {
+    router.push('/onboarding')
+    return null
+  }
+
+  return (
+    <PreviewModeProvider
+      baseExpenses={expenses}
+      baseMembers={members}
+      baseHousehold={household}
+      currentUserId={currentUserId}
+      refetchExpenses={refetch}
+      refetchHousehold={refetchHousehold}
+    >
+      <AppPageContent expensesLoading={expensesLoading} />
+    </PreviewModeProvider>
+  )
+}
+
+function AppPageContent({ expensesLoading }: { expensesLoading: boolean }) {
+  const router = useRouter()
+  const { t, locale } = useLanguage()
+  const { expenses, members, household, currentUserId, isActive: previewActive } = usePreviewMode()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
+  const [simulatingMember, setSimulatingMember] = useState<HouseholdMember | null>(null)
   const [codeCopied, setCodeCopied] = useState(false)
   const [sumType, setSumType] = useState<'all' | 'household' | 'private'>('all')
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerHeight, setHeaderHeight] = useState(0)
 
-  // Calculate sums for the header
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const update = () => setHeaderHeight(el.getBoundingClientRect().height)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   const sums = useMemo(() => {
     const allTotal = expenses.reduce((sum, e) => sum + e.amount, 0)
     const householdTotal = expenses
@@ -50,28 +105,10 @@ export default function AppPage() {
     }
   }
 
-  if (householdLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <Heart className="w-12 h-12 text-blue-600 fill-blue-600 animate-pulse" />
-            <div className="absolute inset-0 w-12 h-12 bg-blue-600/20 rounded-full animate-ping" />
-          </div>
-          <p className="text-lg text-gray-600 dark:text-gray-400">{t.common.loading}</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!household || !currentUserId) {
-    router.push('/onboarding')
-    return null
-  }
+  if (!household || !currentUserId) return null
 
   const currentMember = members.find((m) => m.userId === currentUserId)
 
-  // Sort members: current user first, then by role
   const sortedMembers = [...members].sort((a, b) => {
     if (a.userId === currentUserId) return -1
     if (b.userId === currentUserId) return 1
@@ -81,9 +118,20 @@ export default function AppPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div
+      className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 ${
+        previewActive ? 'pb-24 sm:pb-20' : ''
+      }`}
+    >
+      {previewActive && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-20 pointer-events-none border-4 border-amber-400 dark:border-amber-500"
+          style={{ top: headerHeight }}
+          aria-hidden="true"
+        />
+      )}
       {/* Header - compact on mobile */}
-      <header className="sticky top-0 z-30 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50">
+      <header ref={headerRef} className="sticky top-0 z-30 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -95,6 +143,7 @@ export default function AppPage() {
               </h1>
             </div>
             <div className="flex items-center gap-0.5 sm:gap-1">
+              <PreviewModeToggle />
               <LanguageToggle />
               <ThemeToggle />
               <Button
@@ -117,11 +166,8 @@ export default function AppPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
-        {/* Two-column layout on desktop */}
         <div className="lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
-          {/* Left sidebar - Summary & Members */}
           <div className="space-y-2 sm:space-y-3 lg:space-y-4 mb-3 lg:mb-0 lg:sticky lg:top-20 lg:self-start">
-            {/* Summary Cards */}
             <SummaryCards
               expenses={expenses}
               members={members}
@@ -129,9 +175,7 @@ export default function AppPage() {
               currency={household.currency}
             />
 
-            {/* Household Members */}
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-              {/* Header */}
               <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-indigo-500" />
@@ -151,11 +195,11 @@ export default function AppPage() {
                 </button>
               </div>
 
-              {/* Members list */}
               <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
                 {sortedMembers.map((member) => {
                   const isCurrentUser = member.userId === currentUserId
                   const isOwner = member.role === 'owner'
+                  const showSimulatePencil = previewActive && !isCurrentUser
                   return (
                     <div
                       key={member.id}
@@ -180,12 +224,17 @@ export default function AppPage() {
                             </span>
                             {isOwner && <Crown className="w-3 h-3 text-amber-500" />}
                           </div>
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                          <span className="text-xs text-gray-400 dark:text-gray-500 inline-flex items-center gap-1">
                             {formatAmount(member.income, household.currency, locale)}
+                            {showSimulatePencil && (
+                              <span className="inline-flex items-center" title={t.preview.simulatedBadge}>
+                                <FlaskConical className="w-2.5 h-2.5 text-amber-500" />
+                              </span>
+                            )}
                           </span>
                         </div>
                       </div>
-                      {isCurrentUser && (
+                      {isCurrentUser ? (
                         <button
                           onClick={() => setIsEditProfileOpen(true)}
                           className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
@@ -193,7 +242,16 @@ export default function AppPage() {
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                      )}
+                      ) : showSimulatePencil ? (
+                        <button
+                          onClick={() => setSimulatingMember(member)}
+                          className="p-1.5 rounded text-amber-500 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-colors"
+                          aria-label={t.preview.simulateIncomeTitle}
+                          title={t.preview.simulateIncomeTitle}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      ) : null}
                     </div>
                   )
                 })}
@@ -201,7 +259,6 @@ export default function AppPage() {
             </div>
           </div>
 
-          {/* Right content - Expenses */}
           <Card className="overflow-hidden mb-16 sm:mb-0">
             <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -211,7 +268,6 @@ export default function AppPage() {
                 <h2 className="font-medium text-sm text-gray-900 dark:text-white">{t.app.expenses}</h2>
               </div>
 
-              {/* Mobile sum - tap to cycle through types */}
               {expenses.length > 0 && (
                 <button
                   onClick={() => setSumType(current => current === 'all' ? 'household' : current === 'household' ? 'private' : 'all')}
@@ -235,7 +291,6 @@ export default function AppPage() {
                       {formatAmount(sums[sumType], household.currency, locale)}
                     </span>
                   </div>
-                  {/* Dots indicator */}
                   <div className="flex items-center gap-1">
                     <div className={`w-1 h-1 rounded-full ${sumType === 'all' ? 'bg-gray-600 dark:bg-gray-300' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <div className={`w-1 h-1 rounded-full ${sumType === 'household' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
@@ -244,7 +299,6 @@ export default function AppPage() {
                 </button>
               )}
 
-              {/* Desktop only - mobile uses FAB */}
               <Button onClick={() => setIsAddModalOpen(true)} size="sm" className="hidden sm:flex">
                 <Plus className="w-4 h-4 mr-1" />
                 {t.app.addExpense}
@@ -273,7 +327,6 @@ export default function AppPage() {
                   members={members}
                   currentUserId={currentUserId}
                   currency={household.currency}
-                  onRefresh={refetch}
                 />
               )}
             </div>
@@ -281,34 +334,38 @@ export default function AppPage() {
         </div>
       </main>
 
-      {/* Add Expense Modal */}
       <AddExpenseModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         householdId={household.id}
         currentUserId={currentUserId}
         currentUserName={currentMember?.displayName || t.common.you}
-        onSuccess={refetch}
       />
 
-      {/* Edit Profile Modal */}
       <EditProfileModal
         isOpen={isEditProfileOpen}
         onClose={() => setIsEditProfileOpen(false)}
         member={currentMember || null}
         currency={household.currency}
-        onSuccess={refetchHousehold}
       />
 
-      {/* Mobile FAB for adding expenses */}
+      <SimulateIncomeModal
+        isOpen={simulatingMember !== null}
+        onClose={() => setSimulatingMember(null)}
+        member={simulatingMember}
+        currency={household.currency}
+      />
+
       <button
         onClick={() => setIsAddModalOpen(true)}
         className="sm:hidden fixed bottom-6 right-4 w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-95 transition-transform z-20"
-        style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        style={{ marginBottom: previewActive ? 'calc(env(safe-area-inset-bottom, 0px) + 64px)' : 'env(safe-area-inset-bottom, 0px)' }}
         aria-label={t.app.addExpense}
       >
         <Plus className="w-6 h-6" />
       </button>
+
+      <PreviewModeBar />
     </div>
   )
 }

@@ -149,4 +149,21 @@ export const en: Translations = {
     owner: 'Owner',
     member: 'Member',
   },
+
+  preview: {
+    enter: 'Preview',
+    label: 'Preview mode',
+    save: 'Save changes',
+    saving: 'Saving...',
+    discard: 'Discard',
+    noChangesYet: 'No changes yet',
+    pendingCount: '{n} pending change(s)',
+    simulatedCount: '{n} simulated income(s)',
+    discardConfirmTitle: 'Discard preview changes?',
+    discardConfirmMessage: 'All changes made in preview mode will be lost. This cannot be undone.',
+    simulateIncomeTitle: 'Simulate income',
+    simulateIncomeHint: "Try out a different income for {name}. This is a what-if simulation only — it won't be saved.",
+    applySimulation: 'Apply simulation',
+    simulatedBadge: 'Simulated',
+  },
 }

@@ -7,7 +7,7 @@ import { Input } from './ui/Input'
 import { Label } from './ui/Label'
 import { Modal } from './ui/Modal'
 import { HouseholdMember } from '@/types'
-import { updateMember } from '@/hooks/useHousehold'
+import { usePreviewMode } from './PreviewModeProvider'
 
 interface EditProfileModalProps {
   isOpen: boolean
@@ -24,6 +24,7 @@ export function EditProfileModal({
   currency,
   onSuccess,
 }: EditProfileModalProps) {
+  const { updateOwnProfile } = usePreviewMode()
   const [displayName, setDisplayName] = useState('')
   const [income, setIncome] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -46,7 +47,7 @@ export function EditProfileModal({
     setError(null)
 
     try {
-      await updateMember(member.id, {
+      await updateOwnProfile(member.id, {
         displayName: displayName.trim(),
         income: parseFloat(income),
       })
