@@ -113,6 +113,7 @@ export const en: Translations = {
     displayNameHint: 'This is how you appear to other household members',
     monthlyIncome: 'Monthly Income',
     incomeHint: 'Used to calculate fair expense splits',
+    remaining: 'left',
   },
 
   theme: {
